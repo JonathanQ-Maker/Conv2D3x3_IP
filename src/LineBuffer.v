@@ -33,7 +33,7 @@ module LineBuffer #(parameter DEPTH = 1024, WIDTH = 8) (
                     r_wr_addr <= r_wr_addr + 1;
 
                 // update read address
-                if (o_rd_valid) begin
+                if (r_count >= DEPTH-1) begin
                     if (r_rd_addr == DEPTH-1)
                         r_rd_addr <= 0;
                     else
@@ -46,7 +46,7 @@ module LineBuffer #(parameter DEPTH = 1024, WIDTH = 8) (
                 end
                 
                 // read data
-                o_rd_data <= r_buf[r_wr_addr];
+                o_rd_data <= r_buf[r_rd_addr];
             end
         end
     end
