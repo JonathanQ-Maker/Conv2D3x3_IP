@@ -53,7 +53,19 @@ module LineBuffer_TB;
         end
 
         // fill rest of buffer
-        repeat(DEPTH*2) begin
+        repeat(DEPTH) begin
+            r_wr_valid <= 1'b1;
+            @(posedge r_clk);
+            r_wr_valid <= 1'b0;
+            r_wr_data <= r_wr_data + 1;
+
+            // buffer full, assert valid
+            assert (w_rd_valid);
+        end
+
+        @(posedge r_clk);
+
+        repeat(DEPTH) begin
             r_wr_valid <= 1'b1;
             @(posedge r_clk);
             r_wr_valid <= 1'b0;

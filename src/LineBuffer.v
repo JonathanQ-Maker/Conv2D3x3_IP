@@ -51,7 +51,7 @@ module LineBuffer #(parameter DEPTH = 1024, WIDTH = 8) (
         end
     end
 
-    assign o_rd_valid = (r_count == DEPTH);
+    assign o_rd_valid = (r_count == DEPTH) && i_wr_valid;
 
 
 endmodule
