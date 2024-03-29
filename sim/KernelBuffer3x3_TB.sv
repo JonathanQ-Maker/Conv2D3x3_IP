@@ -2,38 +2,37 @@
 
 module KernelBuffer3x3_TB;
 
-    localparam WIDTH        = 8;
-    localparam BUFFER_DEPTH = 8;
-    localparam BUFFER_WIDTH = 16;
+    localparam WIDTH = 8;
+    localparam DEPTH = 8;
 
     // UUT inputs
-    reg r_aclk = 1'b0;
-    reg r_aresetn = 1'b1;
-    reg r_tvalid = 1'b0;
-    reg [WIDTH-1:0] r_tdata = 0;
-    reg [$clog2(BUFFER_DEPTH)-1:0] r_sel = 0;
+    reg r_aclk                      = 1'b0;
+    reg r_aresetn                   = 1'b1;
+    reg r_tvalid                    = 1'b0;
+    reg [WIDTH-1:0] r_tdata         = 0;
+    reg [$clog2(DEPTH)-1:0] r_sel   = 0;
     
     // UUT outputs
     wire w_tready;
     wire w_buf_valid;
 
-    wire [BUFFER_WIDTH-1:0] w_buf_00;
-    wire [BUFFER_WIDTH-1:0] w_buf_01;
-    wire [BUFFER_WIDTH-1:0] w_buf_02;
+    wire [WIDTH-1:0] w_buf_00;
+    wire [WIDTH-1:0] w_buf_01;
+    wire [WIDTH-1:0] w_buf_02;
 
-    wire [BUFFER_WIDTH-1:0] w_buf_10;
-    wire [BUFFER_WIDTH-1:0] w_buf_11;
-    wire [BUFFER_WIDTH-1:0] w_buf_12;
+    wire [WIDTH-1:0] w_buf_10;
+    wire [WIDTH-1:0] w_buf_11;
+    wire [WIDTH-1:0] w_buf_12;
 
-    wire [BUFFER_WIDTH-1:0] w_buf_20;
-    wire [BUFFER_WIDTH-1:0] w_buf_21;
-    wire [BUFFER_WIDTH-1:0] w_buf_22;
+    wire [WIDTH-1:0] w_buf_20;
+    wire [WIDTH-1:0] w_buf_21;
+    wire [WIDTH-1:0] w_buf_22;
 
 
     KernelBuffer3x3 #(
         .WIDTH(WIDTH),
-        .BUFFER_WIDTH(BUFFER_WIDTH), 
-        .BUFFER_DEPTH(BUFFER_DEPTH)) UUT 
+        .WIDTH(WIDTH), 
+        .DEPTH(DEPTH)) UUT 
     (
         .i_aclk(r_aclk),
         .i_aresetn(r_aresetn),
@@ -73,7 +72,7 @@ module KernelBuffer3x3_TB;
         // reset buffer
         reset();
 
-        repeat(BUFFER_WIDTH/WIDTH*9*BUFFER_DEPTH) begin
+        repeat(9*DEPTH) begin
             r_tvalid <= 1'b1;
             @(posedge r_aclk);
             if (w_tready) begin
@@ -82,7 +81,7 @@ module KernelBuffer3x3_TB;
             end
         end
 
-        repeat(BUFFER_DEPTH) begin
+        repeat(DEPTH) begin
             @(posedge r_aclk);
             r_sel <= r_sel + 1;
         end
