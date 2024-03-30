@@ -14,19 +14,19 @@ module KernelBuffer3x3_TB;
     
     // UUT outputs
     wire w_tready;
-    wire w_buf_valid;
+    wire w_kernel_valid;
 
-    wire [WIDTH-1:0] w_buf_00;
-    wire [WIDTH-1:0] w_buf_01;
-    wire [WIDTH-1:0] w_buf_02;
+    wire [WIDTH-1:0] w_kernel_00;
+    wire [WIDTH-1:0] w_kernel_01;
+    wire [WIDTH-1:0] w_kernel_02;
 
-    wire [WIDTH-1:0] w_buf_10;
-    wire [WIDTH-1:0] w_buf_11;
-    wire [WIDTH-1:0] w_buf_12;
+    wire [WIDTH-1:0] w_kernel_10;
+    wire [WIDTH-1:0] w_kernel_11;
+    wire [WIDTH-1:0] w_kernel_12;
 
-    wire [WIDTH-1:0] w_buf_20;
-    wire [WIDTH-1:0] w_buf_21;
-    wire [WIDTH-1:0] w_buf_22;
+    wire [WIDTH-1:0] w_kernel_20;
+    wire [WIDTH-1:0] w_kernel_21;
+    wire [WIDTH-1:0] w_kernel_22;
 
 
     KernelBuffer3x3 #(
@@ -41,19 +41,19 @@ module KernelBuffer3x3_TB;
         .i_tdata(r_tdata),
 
         .i_sel(r_sel),
-        .o_buf_valid(w_buf_valid),
+        .o_kernel_valid(w_kernel_valid),
 
-        .o_buf_00(w_buf_00),
-        .o_buf_01(w_buf_01),
-        .o_buf_02(w_buf_02),
+        .o_kernel_00(w_kernel_00),
+        .o_kernel_01(w_kernel_01),
+        .o_kernel_02(w_kernel_02),
 
-        .o_buf_10(w_buf_10),
-        .o_buf_11(w_buf_11),
-        .o_buf_12(w_buf_12),
+        .o_kernel_10(w_kernel_10),
+        .o_kernel_11(w_kernel_11),
+        .o_kernel_12(w_kernel_12),
 
-        .o_buf_20(w_buf_20),
-        .o_buf_21(w_buf_21),
-        .o_buf_22(w_buf_22)
+        .o_kernel_20(w_kernel_20),
+        .o_kernel_21(w_kernel_21),
+        .o_kernel_22(w_kernel_22)
     );
 
     // 50mhz clock
@@ -69,7 +69,7 @@ module KernelBuffer3x3_TB;
     endtask
 
     initial begin
-        // reset buffer
+        // reset kernel
         reset();
 
         repeat(9*DEPTH) begin

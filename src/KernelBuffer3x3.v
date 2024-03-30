@@ -14,18 +14,18 @@ module KernelBuffer3x3 #(parameter
     
     // kernel output
     input [$clog2(DEPTH)-1:0] i_sel,
-    output o_buf_valid,
-    output reg [WIDTH-1:0] o_buf_00, 
-    output reg [WIDTH-1:0] o_buf_01, 
-    output reg [WIDTH-1:0] o_buf_02,
+    output o_kernel_valid,
+    output reg [WIDTH-1:0] o_kernel_00, 
+    output reg [WIDTH-1:0] o_kernel_01, 
+    output reg [WIDTH-1:0] o_kernel_02,
 
-    output reg [WIDTH-1:0] o_buf_10, 
-    output reg [WIDTH-1:0] o_buf_11, 
-    output reg [WIDTH-1:0] o_buf_12,
+    output reg [WIDTH-1:0] o_kernel_10, 
+    output reg [WIDTH-1:0] o_kernel_11, 
+    output reg [WIDTH-1:0] o_kernel_12,
     
-    output reg [WIDTH-1:0] o_buf_20, 
-    output reg [WIDTH-1:0] o_buf_21, 
-    output reg [WIDTH-1:0] o_buf_22);
+    output reg [WIDTH-1:0] o_kernel_20, 
+    output reg [WIDTH-1:0] o_kernel_21, 
+    output reg [WIDTH-1:0] o_kernel_22);
 
     localparam VALID_COUNT = 3*3*DEPTH;     // number of words in buffers for kernel to be valid
     
@@ -46,18 +46,18 @@ module KernelBuffer3x3 #(parameter
     reg [WIDTH-1:0] r_buf_22[DEPTH-1:0];
 
     assign o_tready = (r_count < VALID_COUNT);
-    assign o_buf_valid = (r_count == VALID_COUNT);
+    assign o_kernel_valid = (r_count == VALID_COUNT);
 
     always @(posedge i_aclk) begin
-        o_buf_00 <= r_buf_00[i_sel];
-        o_buf_01 <= r_buf_01[i_sel];
-        o_buf_02 <= r_buf_02[i_sel];
-        o_buf_10 <= r_buf_10[i_sel];
-        o_buf_11 <= r_buf_11[i_sel];
-        o_buf_12 <= r_buf_12[i_sel];
-        o_buf_20 <= r_buf_20[i_sel];
-        o_buf_21 <= r_buf_21[i_sel];
-        o_buf_22 <= r_buf_22[i_sel];
+        o_kernel_00 <= r_buf_00[i_sel];
+        o_kernel_01 <= r_buf_01[i_sel];
+        o_kernel_02 <= r_buf_02[i_sel];
+        o_kernel_10 <= r_buf_10[i_sel];
+        o_kernel_11 <= r_buf_11[i_sel];
+        o_kernel_12 <= r_buf_12[i_sel];
+        o_kernel_20 <= r_buf_20[i_sel];
+        o_kernel_21 <= r_buf_21[i_sel];
+        o_kernel_22 <= r_buf_22[i_sel];
     end
 
     always @(posedge i_aclk) begin
