@@ -256,7 +256,7 @@ module Conv2D3x3
     always @(*) begin // combinational logic for o_tdata
         o_tdata = 0;
         for (i = 0; i < FILTER_PER_LINE; i = i + 1) begin
-            o_tdata[WORD_WIDTH*i +: WORD_WIDTH] = r_curr_sums[w_filter_iter + i];
+            o_tdata[WORD_WIDTH*i +: WORD_WIDTH] = r_curr_sums[w_filter_iter + $unsigned(i)];
         end
     end
 
