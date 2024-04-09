@@ -8,7 +8,7 @@ module Conv2D3x3
     WIDTH               = 8, // Width of each AXI4 stream transfer. REQUIRED: WIDTH == C*WORD_WIDTH, for any int C > 0
     WORD_WIDTH          = 8, // Width of each word/value
     FILTERS             = 8, // Number of filters in the kernel     REQUIRED: FILTERS == C*FILTER_PER_LINE, for any int C > 0
-    KERNEL_BUF_WIDTH    = 64 // REQUIRED: KERNEL_BUF_WIDTH == C*WIDTH, for any int C > 0
+    KERNEL_BUF_WIDTH    = 16 // REQUIRED: KERNEL_BUF_WIDTH == C*WIDTH, for any int C > 0
     ) (
     input i_aclk,
     input i_aresetn,
@@ -236,8 +236,8 @@ module Conv2D3x3
 
     always @(*) begin // combinational logic for partial sum
         for (i = 0; i < FILTER_PER_LINE; i = i + 1) begin
+            r_partial[i] = 0;
             for (j = 0; j < WORDS; j = j + 1) begin
-                r_partial[i] = 0;
                 r_partial[i] = r_partial[i] + (r_window_row0[0][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_00[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
                 r_partial[i] = r_partial[i] + (r_window_row0[2][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_01[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
                 r_partial[i] = r_partial[i] + (r_window_row0[4][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_02[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
@@ -254,9 +254,8 @@ module Conv2D3x3
     end
 
     always @(*) begin // combinational logic for o_tdata
-        o_tdata = 0;
         for (i = 0; i < FILTER_PER_LINE; i = i + 1) begin
-            o_tdata[WORD_WIDTH*i +: WORD_WIDTH] = r_curr_sums[w_filter_iter + $unsigned(i)];
+            o_tdata[WORD_WIDTH*i+:WORD_WIDTH] <= r_curr_sums[w_filter_iter + $unsigned(i)];
         end
     end
 
