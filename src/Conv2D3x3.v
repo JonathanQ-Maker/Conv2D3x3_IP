@@ -8,7 +8,23 @@ module Conv2D3x3
     WIDTH               = 8, // Width of each AXI4 stream transfer. REQUIRED: WIDTH == C*WORD_WIDTH, for any int C > 0
     WORD_WIDTH          = 8, // Width of each word/value
     FILTERS             = 8, // Number of filters in the kernel     REQUIRED: FILTERS == C*FILTER_PER_LINE, for any int C > 0
-    KERNEL_BUF_WIDTH    = 16 // REQUIRED: KERNEL_BUF_WIDTH == C*WIDTH, for any int C > 0
+    KERNEL_BUF_WIDTH    = 16,// REQUIRED: KERNEL_BUF_WIDTH == C*WIDTH, for any int C > 0
+
+    localparam
+    WORDS                       = WIDTH / WORD_WIDTH, // IMPORTANT: must be evenly divisible
+    TRANSFERS_PER_PIXEL         = IN_CHANNEL / WORDS, // IMPORTANT: must be evenly divisible
+    LINE_BUF_DEPTH              = IN_WIDTH*TRANSFERS_PER_PIXEL,
+    WINDOW_ROW_DEPTH            = 3*TRANSFERS_PER_PIXEL-1,
+    MAX_VALID_COUNT             = TRANSFERS_PER_PIXEL*3*IN_WIDTH,
+    WINDOW_VALID_COUNT          = TRANSFERS_PER_PIXEL*2*IN_WIDTH + 2*TRANSFERS_PER_PIXEL,
+    FILTER_PER_LINE             = KERNEL_BUF_WIDTH / WIDTH, // IMPORTANT: must be evenly divisible
+    KERNEL_SEL_PER_TRANSFER     = FILTERS / FILTER_PER_LINE,// IMPORTANT: must be evenly divisible
+    KERNEL_BUF_DEPTH            = FILTERS*IN_CHANNEL*WORD_WIDTH / KERNEL_BUF_WIDTH,
+    TRANSFERS_PER_IMAGE         = TRANSFERS_PER_PIXEL*IN_HEIGHT*IN_WIDTH,
+    OUT_WIDTH                   = WORD_WIDTH*FILTER_PER_LINE,
+    PRODUCT_WIDTH               = FILTER_PER_LINE*WORDS*9*WORD_WIDTH,
+    PARTIAL_WIDTH               = FILTER_PER_LINE*WORD_WIDTH,
+    NUM_TERMS                   = WORDS*9
     ) (
     input i_aclk,
     input i_aresetn,
@@ -26,20 +42,10 @@ module Conv2D3x3
     // output data AXI4 stream interface
     output o_tvalid,
     input i_tready,
-    output reg [WORD_WIDTH*FILTER_PER_LINE-1:0] o_tdata);
+    output reg [OUT_WIDTH-1:0] o_tdata);
 
-    localparam WORDS                    = WIDTH / WORD_WIDTH; // IMPORTANT: must be evenly divisible
-    localparam TRANSFERS_PER_PIXEL      = IN_CHANNEL / WORDS; // IMPORTANT: must be evenly divisible
-    localparam LINE_BUF_DEPTH           = IN_WIDTH*TRANSFERS_PER_PIXEL;
-    localparam WINDOW_ROW_DEPTH         = 3*TRANSFERS_PER_PIXEL-1;
-    localparam MAX_VALID_COUNT          = TRANSFERS_PER_PIXEL*3*IN_WIDTH;
-    localparam WINDOW_VALID_COUNT       = TRANSFERS_PER_PIXEL*2*IN_WIDTH + 2*TRANSFERS_PER_PIXEL;
-    localparam FILTER_PER_LINE          = KERNEL_BUF_WIDTH / WIDTH; // IMPORTANT: must be evenly divisible
-    localparam KERNEL_SEL_PER_TRANSFER  = FILTERS / FILTER_PER_LINE;// IMPORTANT: must be evenly divisible
-    localparam KERNEL_BUF_DEPTH         = FILTERS*IN_CHANNEL*WORD_WIDTH / KERNEL_BUF_WIDTH;
-    localparam TRANSFERS_PER_IMAGE      = TRANSFERS_PER_PIXEL*IN_HEIGHT*IN_WIDTH;
-
-    integer i, j;
+    integer i;
+    genvar k, l;
 
 
     // Kernel items
@@ -65,8 +71,9 @@ module Conv2D3x3
     wire [WIDTH-1:0] w_rd_data0, w_rd_data1;
     wire w_window_valid; // is window valid for convolution
     wire w_window_done; // is the current window done convolving
+    wire [PRODUCT_WIDTH-1:0] w_products; 
+    wire [PARTIAL_WIDTH-1:0] w_partial; // partial sum of the window
 
-    reg [WORD_WIDTH-1:0] r_partial[FILTER_PER_LINE-1:0]; // partial sum of the window
     reg [$clog2(TRANSFERS_PER_PIXEL)-1:0] r_channel_idx;
     reg [$clog2(MAX_VALID_COUNT):0] r_valid_count;
     reg [$clog2(TRANSFERS_PER_IMAGE):0] r_count;
@@ -160,11 +167,11 @@ module Conv2D3x3
                     r_clear_iter <= r_clear_iter + 1;
 
                     for (i = 0; i < FILTER_PER_LINE; i = i + 1)
-                        r_curr_sums[w_filter_iter + $unsigned(i)] <= r_partial[i];
+                        r_curr_sums[w_filter_iter + $unsigned(i)] <= w_partial[WORD_WIDTH*i+:WORD_WIDTH];
                 end
                 else begin
                     for (i = 0; i < FILTER_PER_LINE; i = i + 1)
-                        r_curr_sums[w_filter_iter + $unsigned(i)] <= r_curr_sums[w_filter_iter + $unsigned(i)] + r_partial[i];
+                        r_curr_sums[w_filter_iter + $unsigned(i)] <= r_curr_sums[w_filter_iter + $unsigned(i)] + w_partial[WORD_WIDTH*i+:WORD_WIDTH];
                 end
 
                 if (w_window_done) begin
@@ -234,24 +241,30 @@ module Conv2D3x3
             r_out_transferred <= r_out_transferred + 1;
     end
 
-    always @(*) begin // combinational logic for partial sum
-        for (i = 0; i < FILTER_PER_LINE; i = i + 1) begin
-            r_partial[i] = 0;
-            for (j = 0; j < WORDS; j = j + 1) begin
-                r_partial[i] = r_partial[i] + (r_window_row0[0][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_00[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
-                r_partial[i] = r_partial[i] + (r_window_row0[2][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_01[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
-                r_partial[i] = r_partial[i] + (r_window_row0[4][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_02[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
 
-                r_partial[i] = r_partial[i] + (r_window_row1[0][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_10[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
-                r_partial[i] = r_partial[i] + (r_window_row1[2][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_11[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
-                r_partial[i] = r_partial[i] + (r_window_row1[4][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_12[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
+    generate
+        for (k = 0; k < FILTER_PER_LINE; k = k + 1) begin
+            for (l = 0; l < WORDS; l = l + 1) begin
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 0)+: WORD_WIDTH] = (r_window_row0[0][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_00[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 1)+: WORD_WIDTH] = (r_window_row0[2][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_01[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 2)+: WORD_WIDTH] = (r_window_row0[4][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_02[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
 
-                r_partial[i] = r_partial[i] + (r_window_row2[0][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_20[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
-                r_partial[i] = r_partial[i] + (r_window_row2[2][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_21[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
-                r_partial[i] = r_partial[i] + (r_window_row2[4][WORD_WIDTH*j+:WORD_WIDTH] * w_kernel_22[WORD_WIDTH*(i*WORDS+j)+:WORD_WIDTH]);
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 3)+: WORD_WIDTH] = (r_window_row1[0][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_10[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 4)+: WORD_WIDTH] = (r_window_row1[2][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_11[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 5)+: WORD_WIDTH] = (r_window_row1[4][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_12[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
+
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 6)+: WORD_WIDTH] = (r_window_row2[0][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_20[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 7)+: WORD_WIDTH] = (r_window_row2[2][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_21[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
+                assign w_products[WORD_WIDTH*(k*WORDS*9 + l*9 + 8)+: WORD_WIDTH] = (r_window_row2[4][WORD_WIDTH*l+:WORD_WIDTH] * w_kernel_22[WORD_WIDTH*(k*WORDS+l)+:WORD_WIDTH]);
             end
+
+            TreeAdder #(.WORD_WIDTH(WORD_WIDTH), .NUM_TERMS(NUM_TERMS)) adder
+            (
+                .i_terms(w_products[WORD_WIDTH*(k*WORDS*9)+:WORD_WIDTH*NUM_TERMS]),
+                .o_sum(w_partial[WORD_WIDTH*k+:WORD_WIDTH])
+            );
         end
-    end
+    endgenerate
 
     always @(*) begin // combinational logic for o_tdata
         for (i = 0; i < FILTER_PER_LINE; i = i + 1) begin
