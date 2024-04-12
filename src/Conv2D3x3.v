@@ -176,7 +176,6 @@ module Conv2D3x3
 
                 if (w_window_done) begin
                     r_transfer_computed <= 1;
-                    r_kernel_iter <= 0;
                     if (r_channel_idx == TRANSFERS_PER_PIXEL-1) begin
                         r_out_transferred <= 0;
                         r_clear_iter <= 0;
@@ -232,6 +231,7 @@ module Conv2D3x3
                     r_count <= r_count + 1;
 
                 r_transfer_computed <= 0;
+                r_kernel_iter <= 0;
             end
         end
 
