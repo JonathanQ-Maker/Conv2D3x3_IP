@@ -5,11 +5,12 @@ module Conv2D3x3_TB;
     localparam IN_HEIGHT    = 4;
     localparam IN_WIDTH     = 4;
     localparam IN_CHANNEL   = 2;
-    localparam WIDTH        = 8;
+    localparam WORDS        = 1;
     localparam WORD_WIDTH   = 8; 
     localparam FILTERS      = 8;
     localparam KERNEL_BUF_WIDTH = 32;
 
+    localparam WIDTH            = WORD_WIDTH * WORDS;
     localparam NUM_WORDS        = IN_HEIGHT*IN_WIDTH*IN_CHANNEL;
     localparam KERNEL_DEPTH     = 3*3*FILTERS*IN_CHANNEL*WORD_WIDTH/KERNEL_BUF_WIDTH;
     localparam FILTER_PER_LINE  = KERNEL_BUF_WIDTH / WIDTH;
@@ -30,7 +31,7 @@ module Conv2D3x3_TB;
         .IN_HEIGHT(IN_HEIGHT), 
         .IN_WIDTH(IN_WIDTH), 
         .IN_CHANNEL(IN_CHANNEL), 
-        .WIDTH(WIDTH), 
+        .WORDS(WORDS), 
         .WORD_WIDTH(WORD_WIDTH), 
         .FILTERS(FILTERS),
         .KERNEL_BUF_WIDTH(KERNEL_BUF_WIDTH)) UUT

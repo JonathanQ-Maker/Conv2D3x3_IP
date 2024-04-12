@@ -5,13 +5,13 @@ module Conv2D3x3
     IN_HEIGHT           = 4, // Input image height in pixels
     IN_WIDTH            = 4, // Input image width in pixels
     IN_CHANNEL          = 2, // Input image channels                REQUIRED: IN_CHANNEL == C*WORDS, for any int C > 0
-    WIDTH               = 8, // Width of each AXI4 stream transfer. REQUIRED: WIDTH == C*WORD_WIDTH, for any int C > 0
+    WORDS               = 1, // Number of words per transfer
     WORD_WIDTH          = 8, // Width of each word/value
     FILTERS             = 8, // Number of filters in the kernel     REQUIRED: FILTERS == C*FILTER_PER_LINE, for any int C > 0
     KERNEL_BUF_WIDTH    = 16,// REQUIRED: KERNEL_BUF_WIDTH == C*WIDTH, for any int C > 0
 
     localparam
-    WORDS                       = WIDTH / WORD_WIDTH, // IMPORTANT: must be evenly divisible
+    WIDTH                       = WORDS * WORD_WIDTH,
     TRANSFERS_PER_PIXEL         = IN_CHANNEL / WORDS, // IMPORTANT: must be evenly divisible
     LINE_BUF_DEPTH              = IN_WIDTH*TRANSFERS_PER_PIXEL,
     WINDOW_ROW_DEPTH            = 3*TRANSFERS_PER_PIXEL,
