@@ -22,9 +22,9 @@ module Conv2D3x3
     KERNEL_BUF_DEPTH            = FILTERS*IN_CHANNEL*WORD_WIDTH / KERNEL_BUF_WIDTH,
     TRANSFERS_PER_IMAGE         = TRANSFERS_PER_PIXEL*IN_HEIGHT*IN_WIDTH,
     OUT_WIDTH                   = WORD_WIDTH*FILTER_PER_LINE,
-    PRODUCT_WIDTH               = FILTER_PER_LINE*WORDS*9*WORD_WIDTH,
-    PARTIAL_WIDTH               = FILTER_PER_LINE*WORD_WIDTH,
-    NUM_TERMS                   = WORDS*9
+    PRODUCT_WIDTH               = FILTER_PER_LINE*WORDS*9*WORD_WIDTH, // width of wire to contain all product terms between window and kernel
+    PARTIAL_WIDTH               = FILTER_PER_LINE*WORD_WIDTH, // width of wire to contain all parital sums
+    NUM_TERMS                   = WORDS*9 // number of terms to sum in to one partial sum
     ) (
     input i_aclk,
     input i_aresetn,
@@ -49,11 +49,12 @@ module Conv2D3x3
 
 
     // Kernel items
-    reg [$clog2(KERNEL_BUF_DEPTH)-1:0] r_kernel_sel;
-    reg [$clog2(KERNEL_SEL_PER_TRANSFER)-1:0] r_kernel_iter;
-    reg [$clog2(KERNEL_SEL_PER_TRANSFER):0] r_clear_iter;
-    wire w_kernel_valid;
+    reg [$clog2(KERNEL_BUF_DEPTH)-1:0] r_kernel_sel;            // partial filter group selected from KernelBuffer
+    reg [$clog2(KERNEL_SEL_PER_TRANSFER)-1:0] r_kernel_iter;    // partial filter selected from partial filter group
+    reg [$clog2(KERNEL_SEL_PER_TRANSFER):0] r_clear_iter;       // index at which r_curr_sum is being cleared
+    wire w_kernel_valid;                                        // wire connecting to KernelBuffer indicating if buffer is full/valid
 
+    // KernelBuffer output wires, outputs 9 partial filter groups
     wire [KERNEL_BUF_WIDTH-1:0] w_kernel_00;
     wire [KERNEL_BUF_WIDTH-1:0] w_kernel_01;
     wire [KERNEL_BUF_WIDTH-1:0] w_kernel_02;
@@ -67,18 +68,18 @@ module Conv2D3x3
     wire [KERNEL_BUF_WIDTH-1:0] w_kernel_22;
 
     // Window items
-    wire w_rd0_valid, w_rd1_valid, w_wr1_valid;
-    wire [WIDTH-1:0] w_rd_data0, w_rd_data1;
+    wire w_rd0_valid, w_rd1_valid, w_wr1_valid; // LineBuffer read and write valid status wires
+    wire [WIDTH-1:0] w_rd_data0, w_rd_data1;    // LineBuffer read data wires
     wire w_window_valid; // is window valid for convolution
     wire w_window_done; // is the current window done convolving
-    wire [PRODUCT_WIDTH-1:0] w_products; 
-    wire [PARTIAL_WIDTH-1:0] w_partial; // partial sum of the window
+    wire [PRODUCT_WIDTH-1:0] w_products; // wire containing all multiplication products between window and kernel 
+    wire [PARTIAL_WIDTH-1:0] w_partial; // partial sum of the window from w_products
 
-    reg [$clog2(TRANSFERS_PER_PIXEL)-1:0] r_channel_idx;
-    reg [$clog2(MAX_VALID_COUNT):0] r_valid_count;
-    reg [$clog2(TRANSFERS_PER_IMAGE):0] r_count;
+    reg [$clog2(TRANSFERS_PER_PIXEL)-1:0] r_channel_idx; // the channel index at which the input transfer is transfering into  
+    reg [$clog2(MAX_VALID_COUNT):0] r_valid_count; // counter indicating the validity of the input window
+    reg [$clog2(TRANSFERS_PER_IMAGE):0] r_count; // counter keeping track of the current image transfer count
     reg [$clog2(KERNEL_SEL_PER_TRANSFER):0] r_out_transferred; // number of times the output been transfered
-    reg r_transfer_computed;
+    reg r_transfer_computed; // has current input transfer been computed for its partial sum
 
     // Window FF RAMs
     reg [WIDTH-1:0] r_window_row0[WINDOW_ROW_DEPTH-1:0];
@@ -87,7 +88,7 @@ module Conv2D3x3
 
     // Result Items
     wire [$clog2(FILTERS)-1:0] w_filter_iter;
-    reg [WORD_WIDTH-1:0] r_curr_sums[FILTERS-1:0];
+    reg [WORD_WIDTH-1:0] r_curr_sums[FILTERS-1:0]; // sum of partial sums
 
     assign o_tready = (i_tready || !o_tvalid) && w_kernel_valid && w_window_done || !w_window_valid;
     assign w_wr1_valid = (i_tvalid && o_tready);
