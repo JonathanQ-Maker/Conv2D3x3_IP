@@ -15,12 +15,12 @@ The Convolution 2D 3x3 (Conv2D3x3) IP provides high-bandwidth 2-dimentional conv
 - Customizable AXI4-Stream width and word width
 - Fixed point arithmatic 
 
-| IP Facts Table      |         |
-|---------------------|---------|
-| Design Files        | Verilog |
-| Test Bench          | Verilog |
-| Simulation tool     | Vivado  |
-| Supported Synthesis | Vivado  |
+| IP Facts Table      |                 |
+|---------------------|-----------------|
+| Design Files        | Verilog         |
+| Test Bench          | SystemVerilog   |
+| Simulation tool     | Vivado          |
+| Supported Synthesis | Vivado          |
 
 
 ## User Guide
