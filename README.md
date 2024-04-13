@@ -19,11 +19,13 @@ The Convolution 2D 3x3 (Conv2D3x3) IP provides high-bandwidth 2-dimentional conv
 |---------------------|---------|
 | Design Files        | Verilog |
 | Test Bench          | Verilog |
-| Design Entry        | Vivado  |
+| Simulation tool     | Vivado  |
 | Supported Synthesis | Vivado  |
 
 
-## Port Description
+## User Guide
+### Port Descriptions
+Table: I/O Ports of the Conv2D3x3 module.
 
 | Signal Name       | Signal Type   | Description                                   |
 |-------------------|---------------|-----------------------------------------------|
@@ -41,3 +43,16 @@ The Convolution 2D 3x3 (Conv2D3x3) IP provides high-bandwidth 2-dimentional conv
 | o_tvalid          | Output        | Master AXI4-Stream TVALID for result data     |
 | i_tready          | Input         | Master AXI4-Stream TREADY for result data     |
 | o_tdata           | Output        | Master AXI4-Stream TDATA for result data      |
+
+### Paremeter Descriptions
+Table: Parameter constants of the Conv2D3x3 module. Constants must be defined following the listed requirements.
+
+| Paremeter Name    | Requirements                                              | Description                       |
+|-------------------|-----------------------------------------------------------|-----------------------------------|
+| IN_HEIGHT         | IN_HEIGHT >= 3                                            | Input image height in pixels      |
+| IN_WIDTH          | IN_WIDTH >= 3                                             | Input image width in pixels       |
+| IN_CHANNEL        | IN_CHANNEL % WORDS == 0                                   | Input image channels in words     |
+| WORDS             | WORDS >= 1                                                | Number of words per transfer      |
+| WORD_WIDTH        | WORD_WIDTH >= 1                                           | Width of each word                |
+| FILTERS           | FILTERS % (KERNEL_BUF_WIDTH / (WORDS \* WORD_WIDTH)) == 0 | Number of filters in the kernel   |
+| KERNEL_BUF_WIDTH  | KERNEL_BUF_WIDTH % (WORDS \* WORD_WIDTH) == 0             | Width of the kernel buffer port   |

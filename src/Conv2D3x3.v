@@ -2,13 +2,13 @@
 
 module Conv2D3x3
     #(parameter
-    IN_HEIGHT           = 4, // Input image height in pixels
-    IN_WIDTH            = 4, // Input image width in pixels
-    IN_CHANNEL          = 2, // Input image channels                REQUIRED: IN_CHANNEL == C*WORDS, for any int C > 0
-    WORDS               = 1, // Number of words per transfer
-    WORD_WIDTH          = 8, // Width of each word/value
-    FILTERS             = 8, // Number of filters in the kernel     REQUIRED: FILTERS == C*FILTER_PER_LINE, for any int C > 0
-    KERNEL_BUF_WIDTH    = 16,// REQUIRED: KERNEL_BUF_WIDTH == C*WIDTH, for any int C > 0
+    IN_HEIGHT           = 4, // Input image height in pixels        REQUIRED: IN_HEIGHT >= 3
+    IN_WIDTH            = 4, // Input image width in pixels         REQUIRED: IN_WIDTH >= 3
+    IN_CHANNEL          = 2, // Input image channels                REQUIRED: IN_CHANNEL % WORDS == 0
+    WORDS               = 1, // Number of words per transfer        REQUIRED: WORDS > 0
+    WORD_WIDTH          = 8, // Width of each word/value            REQUIRED: WORD_WIDTH > 0
+    FILTERS             = 8, // Number of filters in the kernel     REQUIRED: FILTERS % (KERNEL_BUF_WIDTH / (WORDS * WORD_WIDTH)) == 0
+    KERNEL_BUF_WIDTH    = 16,// Width of the kernel buffer port     REQUIRED: KERNEL_BUF_WIDTH % (WORDS * WORD_WIDTH) == 0
 
     localparam
     WIDTH                       = WORDS * WORD_WIDTH,
