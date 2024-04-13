@@ -9,7 +9,7 @@ The Convolution 2D 3x3 (Conv2D3x3) IP provides high-bandwidth 2-dimentional conv
 
 ## Key Features and Benefits
 - AXI4 compliant
-- Async kernel and input image loading with seperate AXI4-Stream ports
+- Kernel and input image loading with seperate AXI4-Stream ports
 - Uses Block RAM for line buffers and kernel buffers
 - Tree adder for logarithmic complexity
 - Customizable image height, image width, pixel channels.
