@@ -14,9 +14,7 @@ In order to ensure compatibility, the core must use AXI4-Stream interface to loa
 Furthermore, the input image data must be the conventional
 channel-first order. Where the channel data corresponding to row 0 is transferred first, then the data representing row 1 is transffered, then row 2 and so on. This data order requirement only applies to input image data due to possible hardware limitations outside of user's control. For instance, compatibility with a camera peripheral that transfers in channel-first order. See the following animation for the described data order.
 
-<video width="320" height="240" controls>
-    <source src="./media/ImageFillNaive.mp4" type="video/mp4">
-</video>
+[./media/ImageFillNaive.mp4](https://github.com/JonathanQ-Maker/Conv2D3x3_IP/assets/54139109/44421c53-52a4-49bf-b6ba-bc018051e2b2)
 
 **Video 1:** <ins>Naive animation of how the input image data of 4x4x3 (height, width, channel) are transferred. Assuming at each clock cycle one word/channel can be transferred through the AXI Stream interface. Notice how the order is red channel, green channel, blue channel, then the next pixel in the row and so on.</ins>
 
@@ -51,9 +49,7 @@ The row registers are used for their ability to accessed all the data stored wit
 
 Between each row register is a line buffer, the line buffer's goal is to delay the input image data such that the row registers have the correct 3x3 window loaded. The following is an animation showing line buffers and row registers in action on a 4x4 image.
 
-<video width="640" height="380" controls>
-    <source src="./media/ImageFillBuffers.mp4" type="video/mp4">
-</video>
+[./media/ImageFillBuffers.mp4](https://github.com/JonathanQ-Maker/Conv2D3x3_IP/assets/54139109/0168fa74-7465-4069-a3b7-c20b7cc7cb92)
 
 **Video 2:** <ins>Animation of how a 4x4x1 input image data is loaded into the line buffers and row registers. Notice how the line buffer delay data such that the row registers would form the correct 3x3 window. This window is then later be used with the kernel to perform the 2D convolution.</ins>
 
