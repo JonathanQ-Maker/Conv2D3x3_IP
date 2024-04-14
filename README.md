@@ -5,7 +5,7 @@ This repository contains the FPGA softcore for 2-dimentional convolution optimiz
 ## Overview
 The Convolution 2D 3x3 (Conv2D3x3) IP provides high-bandwidth 2-dimentional convolution against fixed 3x3 filter size. It is optimized for deep learning inference against high channel count input images and kernels. The Conv2D3x3 IP uses AXI4 stream for both data ingress and egress allowing for a cascading configuration.
 
-![Conv2D3x3 Block Diagram](./docs/Conv2D3x3_Block_Diagram.svg)
+![Conv2D3x3 Block Diagram](./docs/block_diagram/Conv2D3x3_Block_Diagram.svg)
 
 ## Key Features and Benefits
 - AXI4 compliant
