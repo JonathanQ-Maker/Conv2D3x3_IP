@@ -8,7 +8,10 @@ reader is clear on the theoretical basics of deep learning 2D convolution operat
 The Conv2D3x3 IP core is designed to accelerate 2D convolution for deep learning vision tasks. 
 To this end, the following constraints are to be considered during implementation.
 
-### 1. AXI4 Stream interface and Data Order
+### 1. Deep Channels
+In traditional 2D convolution operations the image to be convolved often only have to deal with 3 channels per pixel for red, green and blue values, a relatively small number. This is however not the case for deep learning 2D convolution. Deep learning 2D convolution often have to deal with an incredibly high number of channels, notably channels often dominate over width and height. For example, one of the 2D convolution layer in the famous ResNet-50 classification model processes an image of shape 14x14x256 (height, width, channels).
+
+### 2. AXI4 Stream interface and Data Order
 In order to ensure compatibility, the core must use AXI4-Stream interface to load input image data, load kernel data and output result data. 
 
 Furthermore, the input image data must be the conventional
@@ -21,9 +24,6 @@ channel-first order. Where the channel data corresponding to row 0 is transferre
 On the otherhand, Conv2D3x3 can load a non-conventional kernal data order. This is because the IP core user does have control over the kernel data. This freedom gives more flexibility for a more optimal implementation.
 
 Finally, the result data must also follow the data order of the input data. This is because it allows cascading 2D convolution operations togeather. Which is a common practice in deep learning vision tasks. Consider, again, the ResNet-50, the suffix "50" means 50 layers of 2D convolution processors.
-
-### 2. Deep Channels
-In traditional 2D convolution operations the image to be convolved often only have to deal with 3 channels per pixel for red, green and blue values, a relatively small number. This is however not the case for deep learning 2D convolution. Deep learning 2D convolution often have to deal with an incredibly high number of channels, notably channels often dominate over width and height. For example, one of the 2D convolution layer in the famous ResNet-50 classification model processes an image of shape 14x14x256 (height, width, channels).
 
 ### 3. Partial Results
 The input image to be convolved on would likely be too big to fit in on-chip memory. Therefore, as the input image data is being loaded into the core, computation should start as soon as possible to produce partial results. This would allow the core to evict the partial results quickly thereby incur less on-chip memory usage.
