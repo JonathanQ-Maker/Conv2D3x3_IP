@@ -35,27 +35,27 @@ Table: I/O Ports of the Conv2D3x3 module.
 | i_aclk            | Input         | global clock                                  |
 | i_aresetn         | Input         | synchronous global reset signal, active low   |
 |                   |               |                                               |
-| i_tvalid          | Input         | Slave AXI4-Stream TVALID for input image data |
-| o_tready          | Output        | Slave AXI4-Stream TREADY for input image data |
-| i_tdata           | Input         | Slave AXI4-Stream TDATA for input image data  |
+| i_img_tvalid      | Input         | Slave AXI4-Stream TVALID for input image data |
+| o_img_tready      | Output        | Slave AXI4-Stream TREADY for input image data |
+| i_img_tdata       | Input         | Slave AXI4-Stream TDATA for input image data  |
 |                   |               |                                               |
 | i_kernel_tvalid   | Input         | Slave AXI4-Stream TVALID for kernel data      |
 | o_kernel_tready   | Output        | Slave AXI4-Stream TREADY for kernel data      |
 | i_kernel_tdata    | Input         | Slave AXI4-Stream TDATA for kernel data       |
 |                   |               |                                               |
-| o_tvalid          | Output        | Master AXI4-Stream TVALID for result data     |
-| i_tready          | Input         | Master AXI4-Stream TREADY for result data     |
-| o_tdata           | Output        | Master AXI4-Stream TDATA for result data      |
+| o_out_tvalid      | Output        | Master AXI4-Stream TVALID for result data     |
+| i_out_tready      | Input         | Master AXI4-Stream TREADY for result data     |
+| o_out_tdata       | Output        | Master AXI4-Stream TDATA for result data      |
 
 ### Paremeter Descriptions
 Table: Parameter constants of the Conv2D3x3 module. Constants must be defined following the listed requirements.
 
-| Paremeter Name    | Requirements                                              | Description                       |
-|-------------------|-----------------------------------------------------------|-----------------------------------|
-| IN_HEIGHT         | IN_HEIGHT >= 3                                            | Input image height in pixels      |
-| IN_WIDTH          | IN_WIDTH >= 3                                             | Input image width in pixels       |
-| IN_CHANNEL        | IN_CHANNEL % WORDS == 0                                   | Input image channels in words     |
-| WORDS             | WORDS >= 1                                                | Number of words per transfer      |
-| WORD_WIDTH        | WORD_WIDTH >= 1                                           | Width of each word                |
-| FILTERS           | FILTERS % (KERNEL_BUF_WIDTH / (WORDS \* WORD_WIDTH)) == 0 | Number of filters in the kernel   |
-| KERNEL_BUF_WIDTH  | KERNEL_BUF_WIDTH % (WORDS \* WORD_WIDTH) == 0             | Width of the kernel buffer port   |
+| Paremeter Name        | Requirements                                                              | Description                                       |
+|-----------------------|---------------------------------------------------------------------------|---------------------------------------------------|
+| IMG_HEIGHT            | IN_HEIGHT >= 3                                                            | Input image height in pixels                      |
+| IMG_WIDTH             | IN_WIDTH >= 3                                                             | Input image width in pixels                       |
+| WORDS_PER_TRANSFER    | WORDS_PER_TRANSFER >= 1                                                   | Number of words per transfer                      |
+| TRANSFERS_PER_PIXEL   | TRANSFERS_PER_PIXEL >= 1                                                  | Number of input image transfers to fill a pixel   |
+| WORD_WIDTH            | WORD_WIDTH >= 1                                                           | Width of each word                                |
+| FILTERS               | FILTERS % (KERNEL_BUF_WIDTH / (WORDS_PER_TRANSFER \* WORD_WIDTH)) == 0    | Number of filters in the kernel                   |
+| KERNEL_BUF_WIDTH      | KERNEL_BUF_WIDTH % (WORDS_PER_TRANSFER \* WORD_WIDTH) == 0                | Width of the kernel buffer port                   |
